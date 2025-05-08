@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Theme } from '@radix-ui/themes';
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,9 +31,11 @@ export default function RootLayout({
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale'
       }}>
-        <Theme accentColor="blue" grayColor="slate" radius="medium" scaling="100%">
-          {children}
-        </Theme>
+        <ThemeProvider attribute="class">
+          <Theme accentColor="blue" grayColor="slate" radius="medium" scaling="100%" appearance="dark">
+            {children}
+          </Theme>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Button, Flex, Container, Text, Card, Heading, Box, Grid, Avatar, AlertDialog, DataList, Badge, Code, IconButton, DropdownMenu, Separator, Spinner } from '@radix-ui/themes';
-import YappSDK, { FiatCurrency, isInIframe, Payment, PaymentRequestData, UserContext } from '@yodlpay/yapp-sdk';
+import { Button, Flex, Container, Text, Card, Heading, Box, Grid, Avatar, AlertDialog, DataList, Badge, Code, IconButton, DropdownMenu, Separator, Spinner, Theme } from '@radix-ui/themes';
+import { FiatCurrency, isInIframe, Payment, PaymentRequestData, UserContext } from '@yodlpay/yapp-sdk';
 import productsData from './data/products.json';
-import { YODL_ORIGIN_URL } from '@/lib/constants';
 import { userDisplayName } from '@/lib/helpers';
 import Link from 'next/link';
 import { Cross2Icon } from '@radix-ui/react-icons';
+import { fetchPayment } from '@/lib/indexerClient';
+import { sdk } from '@/lib/sdk';
+import { RECIPIENT_ENS_OR_ADDRESS } from '@/lib/constants';
+
+const { products } = productsData;
 
 export default function Home() {
-  const { products } = productsData;
+  const receiverEnsOrAddress = RECIPIENT_ENS_OR_ADDRESS;
 
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequestData | null>(null);
   const [paymentResponse, setPaymentResponse] = useState<Payment | null>(null);
@@ -18,36 +22,18 @@ export default function Home() {
   const [userContext, setUserContext] = useState<UserContext | null>(null);
 
   const isEmbedded = isInIframe();
+  const displayName = userDisplayName(userContext);
 
-  // Initialize the SDK
-  const sdk = new YappSDK({
-    origin: YODL_ORIGIN_URL,
-  });
 
   const handleBuy = async (product: any) => {
     try {
-
-      console.log(`Initiating payment for ${product.title}`);
-
-      // Determine the appropriate currency enum value
-      const currency = product.currency === 'USD'
-        ? FiatCurrency.USD
-        : product.currency === 'EUR'
-          ? FiatCurrency.EUR
-          : FiatCurrency.USD; // Default to USD if currency not supported
-
-      // Get the ENS or address from environment variables
-      const receiverEnsOrAddress = process.env.NEXT_PUBLIC_ENS_OR_ADDRESS;
-
-      if (!receiverEnsOrAddress) {
-        throw new Error('Payment address not configured. Please set NEXT_PUBLIC_ENS_OR_ADDRESS in .env.local');
-      }
       const paymentRequest = {
         addressOrEns: receiverEnsOrAddress,
         amount: product.amount,
-        currency: currency,
-        memo: product.id, // Unique identifier for this order        
-        redirectUrl: window.location.href, // Redirect back to this page after payment
+        currency: product.currency,
+        memo: product.id, // Unique identifier for this order     
+        // redirectUrl only required when running standalone
+        redirectUrl: isEmbedded ? undefined : window.location.href
       } as PaymentRequestData;
 
       setPaymentRequest(paymentRequest);
@@ -84,18 +70,12 @@ export default function Home() {
 
   useEffect(() => {
     if (paymentResponse) {
-      const { txHash, chainId } = paymentResponse;
-      fetch(`https://tx.yodl.me/api/v1/payments/${txHash}?chainId=${chainId}`).then((resp) => {
-        resp.json().then((data) => {
-          setPaymentDetails(data.payment);
-        })
-      })
+      fetchPayment(paymentResponse).then(setPaymentDetails);
     }
   }, [paymentResponse]);
 
   const productOrdered = paymentDetails && products.find((p) => p.id === paymentDetails?.memo);
 
-  const displayName = userDisplayName(userContext);
 
   function resetPayment() {
     setPaymentResponse(null);
@@ -144,41 +124,38 @@ export default function Home() {
   </DropdownMenu.Root>
 
 
-  return (
-    <>
-      {paymentResponse && (
-        <Box
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'var(--green-10)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          onClick={resetPayment}
-        >
-          <Flex direction="column" align="center" style={{ width: '100%' }} px="6">
-            <Card style={{ width: '100%' }}>
-              <Flex direction="column" gap="3" align="center" style={{ width: '100%' }}>
-                <Flex width="100%" justify="between" align="center">
-                  <Heading size="5" weight="medium">Payment Successful</Heading>
-                  <IconButton color="gray" size="2" variant="ghost" onClick={resetPayment}>
-                    <Cross2Icon />
-                  </IconButton>
-                </Flex>
-                <Separator size="4" />
-                {!paymentDetails &&
-                  <Spinner size="3" />
-                }
+  if (paymentResponse) {
+    return <Theme accentColor="green">
+      <Box
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'var(--green-a7)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        onClick={resetPayment}
+      >
+        <Flex direction="column" align="center" style={{ width: '100%' }} px="6">
 
-                {productOrdered && (
+          <Box style={{
+            width: '100%'
+          }}>
+            <Flex direction="column" gap="3" align="center" style={{ width: '100%' }} >
+              <Flex width="100%" justify="center" align="center">
+                <Heading size="5" weight="medium">Payment Successful</Heading>
+              </Flex>
+              {!paymentDetails &&
+                <Spinner size="3" />
+              }
+
+              {productOrdered && (
+                <Card variant="surface" style={{ width: '100%' }}>
                   <Flex p="2" direction="column" style={{ height: '100%' }} justify="between">
                     <Box>
                       <Flex align="center" width="100%" gap="3" mb="2">
@@ -197,9 +174,10 @@ export default function Home() {
                       </Flex>
                       <Text size="2" color="gray">{productOrdered.subtitle}</Text>
                     </Box>
-                  </Flex>)}
-                <Separator size="4" mb="2" />
-                {paymentDetails &&
+                  </Flex>
+                </Card>)}
+              {paymentDetails &&
+                <Card variant="ghost">
                   <DataList.Root style={{ width: '100%' }}>
                     <DataList.Item align="center">
                       <DataList.Label minWidth="88px">Date/Time</DataList.Label>
@@ -225,19 +203,29 @@ export default function Home() {
                         {paymentDetails.tokenOutAmountGross} {paymentDetails.tokenOutSymbol}
                       </DataList.Value>
                     </DataList.Item>
-                  </DataList.Root>}
-                <Separator size="4" mb="1" />
+                  </DataList.Root>
+                </Card>}
+              <Separator size="2" mb="1" />
+              <Grid columns="2" gap="2">
                 <Button variant="outline" color="gray" asChild>
                   <Link target="_blank" href={`https://yodl.me/tx/${paymentResponse?.txHash}`}>
                     Receipt
                   </Link>
                 </Button>
-              </Flex>
-            </Card>
-          </Flex>
-        </Box>
-      )}
+                <Button variant="outline" color="gray" onClick={resetPayment}>
+                  Close
+                </Button>
+              </Grid>
+            </Flex>
 
+          </Box>
+        </Flex>
+      </Box >
+    </Theme >
+  }
+
+  return (
+    <>
       <Box style={{ minHeight: '100vh' }} p="6">
         <Container size="3">
           <Flex direction="column" gap="6" align="center">
@@ -294,10 +282,4 @@ export default function Home() {
       </Box>
     </>
   );
-}
-
-
-
-export function PaymentResponse(payment: Payment, paymentRequest: PaymentRequestData) {
-
 }
