@@ -16,7 +16,7 @@ export type YodlPayment = {
 
   receiverAddress: string;
   receiverEnsPrimaryName: string;
-  receiverYodlConfig: any;
+  receiverYodlConfig: object;
 
   invoiceCurrency: string;
   invoiceAmount: string;

@@ -1,31 +1,37 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Button, Flex, Container, Text, Card, Heading, Box, Grid, Avatar, AlertDialog, DataList, Badge, Code, IconButton, DropdownMenu, Separator, Spinner, Theme } from '@radix-ui/themes';
+import { Button, Flex, Container, Text, Card, Heading, Box, Grid, Avatar, DataList, DropdownMenu, Separator, Spinner, Theme } from '@radix-ui/themes';
 import { FiatCurrency, isInIframe, Payment, PaymentRequestData, UserContext } from '@yodlpay/yapp-sdk';
 import productsData from './data/products.json';
 import { userDisplayName } from '@/lib/helpers';
 import Link from 'next/link';
-import { Cross2Icon } from '@radix-ui/react-icons';
-import { fetchPayment } from '@/lib/indexerClient';
+import { fetchPayment, YodlPayment } from '@/lib/indexerClient';
 import { sdk } from '@/lib/sdk';
 import { RECIPIENT_ENS_OR_ADDRESS } from '@/lib/constants';
 
 const { products } = productsData;
+
+export type ProductDetails = {
+  id: string;
+  title: string;
+  subtitle: string;
+  amount: number;
+  currency: string;
+}
 
 export default function Home() {
   const receiverEnsOrAddress = RECIPIENT_ENS_OR_ADDRESS;
 
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequestData | null>(null);
   const [paymentResponse, setPaymentResponse] = useState<Payment | null>(null);
-  const [paymentDetails, setPaymentDetails] = useState<any | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<YodlPayment | null>(null);
   const [userContext, setUserContext] = useState<UserContext | null>(null);
 
   const isEmbedded = isInIframe();
   const displayName = userDisplayName(userContext);
 
-
-  const handleBuy = async (product: any) => {
+  const handleBuy = async (product: ProductDetails) => {
     try {
       const paymentRequest = {
         addressOrEns: receiverEnsOrAddress,
@@ -49,10 +55,12 @@ export default function Home() {
       // Handle payment errors
       console.error('Payment error:', error);
 
-      if (error.message === 'Payment was cancelled') {
-        alert('Payment was cancelled.');
-      } else {
-        alert(`Payment error: ${error.message || 'Unknown error'}`);
+      if (error instanceof Error) {
+        if (error.message === 'Payment was cancelled') {
+          alert('Payment was cancelled.');
+        } else {
+          alert(`Payment error: ${error.message || 'Unknown error'}`);
+        }
       }
 
     } finally {
@@ -66,7 +74,7 @@ export default function Home() {
     } else {
       setUserContext(null);
     }
-  }, [setUserContext]);
+  }, [setUserContext, isEmbedded]);
 
   useEffect(() => {
     if (paymentResponse) {
