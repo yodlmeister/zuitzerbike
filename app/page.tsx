@@ -1,103 +1,141 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from 'react';
+import { Button, Flex, Container, Text, Card, Heading, Box, Grid, Avatar } from '@radix-ui/themes';
+import YappSDK, { FiatCurrency, isInIframe, UserContext } from '@yodlpay/yapp-sdk';
+import productsData from './data/products.json';
+import { YODL_ORIGIN_URL } from '@/lib/constants';
+import { userDisplayName } from '@/lib/helpers';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { products } = productsData;
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const [userContext, setUserContext] = useState<UserContext | null>(null);
+
+  const isEmbedded = isInIframe();
+
+  // Initialize the SDK
+  const sdk = new YappSDK({
+    origin: YODL_ORIGIN_URL,
+  });
+
+  const handleBuy = async (product: any) => {
+    try {
+      setIsProcessing(product.id);
+
+      console.log(`Initiating payment for ${product.title}`);
+
+      // Determine the appropriate currency enum value
+      const currency = product.currency === 'USD'
+        ? FiatCurrency.USD
+        : product.currency === 'EUR'
+          ? FiatCurrency.EUR
+          : FiatCurrency.USD; // Default to USD if currency not supported
+
+      // Get the ENS or address from environment variables
+      const receiverEnsOrAddress = process.env.NEXT_PUBLIC_ENS_OR_ADDRESS;
+
+      if (!receiverEnsOrAddress) {
+        throw new Error('Payment address not configured. Please set NEXT_PUBLIC_ENS_OR_ADDRESS in .env.local');
+      }
+
+
+      // Request payment using the Yapp SDK
+      const response = await sdk.requestPayment({
+        addressOrEns: receiverEnsOrAddress,
+        amount: product.amount,
+        currency: currency,
+        memo: product.id, // Unique identifier for this order        
+        redirectUrl: window.location.href, // Redirect back to this page after payment
+      });
+
+      // Handle successful payment
+      console.log('Payment successful:', response);
+      alert(`Payment for ${product.title} was successful!`);
+
+    } catch (error) {
+      // Handle payment errors
+      console.error('Payment error:', error);
+
+      if (error.message === 'Payment was cancelled') {
+        alert('Payment was cancelled.');
+      } else {
+        alert(`Payment error: ${error.message || 'Unknown error'}`);
+      }
+
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
+  useEffect(() => {
+    if (isEmbedded) {
+      sdk.getUserContext().then(setUserContext);
+    } else {
+      setUserContext(null);
+    }
+  }, [sdk, setUserContext]);
+
+  const displayName = userDisplayName(userContext);
+
+  return (
+    <Box style={{ minHeight: '100vh' }} p="6">
+      <Container size="3">
+        <Flex direction="column" gap="6" align="center">
+          <Flex justify="between" width="100%" align="center">
+            <Heading mb="2">QuickiePay</Heading>
+            <Box>
+              <Button variant="outline" size="2">
+                {displayName}
+              </Button>
+            </Box>
+          </Flex>
+
+          <Box mt="6" width="100%">
+            <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+              {products.map((product) => (
+                <Card key={product.id} size="2">
+                  <Flex direction="column" style={{ height: '100%' }} justify="between">
+                    <Box>
+                      <Flex align="center" width="100%" gap="3" mb="2">
+                        <Avatar
+                          size="3"
+                          radius="full"
+                          fallback={product.emoji}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'var(--gray-3)'
+                          }}
+                        />
+                        <Heading size="3">{product.title}</Heading>
+                      </Flex>
+
+                      <Text size="2" color="gray">{product.subtitle}</Text>
+                    </Box>
+
+                    <Box mt="3">
+                      <Button
+                        onClick={() => handleBuy(product)}
+                        size="2"
+                        style={{ width: '100%' }}
+                        disabled={isProcessing === product.id}
+                      >
+                        {isProcessing === product.id
+                          ? 'Processing...'
+                          : `Buy for ${product.amount.toFixed(2)} ${product.currency}`
+                        }
+                      </Button>
+                    </Box>
+                  </Flex>
+                </Card>
+              ))}
+            </Grid>
+          </Box>
+        </Flex>
+      </Container>
+    </Box>
   );
 }
