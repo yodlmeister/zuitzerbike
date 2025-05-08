@@ -2,67 +2,19 @@
   "products": [
     {
       "id": "prod_001",
-      "title": "Premium Subscription",
+      "title": "Coffee",
       "subtitle": "Monthly access to all premium features",
-      "amount": 19.99,
-      "currency": "USD",
-      "emoji": "✨"
-    },
-    {
-      "id": "prod_002",
-      "title": "Coffee Mug",
-      "subtitle": "Ceramic mug with QuickiePay logo",
-      "amount": 12.50,
+      "amount": 1.00,
       "currency": "USD",
       "emoji": "☕"
     },
     {
-      "id": "prod_003",
-      "title": "Annual Plan",
-      "subtitle": "Full year access with 20% savings",
-      "amount": 199.99,
+      "id": "prod_002",
+      "title": "5x Coffee",
+      "subtitle": "Ceramic mug with QuickiePay logo",
+      "amount": 4.50,
       "currency": "USD",
-      "emoji": "🎁"
-    },
-    {
-      "id": "prod_004",
-      "title": "Gift Card",
-      "subtitle": "Perfect present for friends and family",
-      "amount": 50.00,
-      "currency": "USD",
-      "emoji": "🎀"
-    },
-    {
-      "id": "prod_005",
-      "title": "Business Package",
-      "subtitle": "Enterprise features for growing companies",
-      "amount": 499.99,
-      "currency": "USD",
-      "emoji": "💼"
-    },
-    {
-      "id": "prod_006",
-      "title": "Tech Support",
-      "subtitle": "One-time technical assistance",
-      "amount": 35.00,
-      "currency": "USD",
-      "emoji": "🔧"
-    },
-    {
-      "id": "prod_007",
-      "title": "Donation",
-      "subtitle": "Support our open-source initiatives",
-      "amount": 10.00,
-      "currency": "USD",
-      "emoji": "💝"
-    },
-    {
-      "id": "prod_008",
-      "title": "Starter Kit",
-      "subtitle": "Essential tools to get you started",
-      "amount": 25.99,
-      "currency": "USD",
-      "emoji": "🚀"
+      "emoji": "😬"
     }
   ]
 }
