@@ -93,28 +93,36 @@ export default function Home() {
     }
   }, [paymentResponse]);
 
-
+  const productOrdered = paymentDetails && products.find((p) => p.id === paymentDetails?.memo);
 
   const displayName = userDisplayName(userContext);
+
+  function resetPayment() {
+    setPaymentResponse(null);
+    setPaymentRequest(null);
+    setPaymentDetails(null);
+  }
+
+  // SIMULATOR. Makes it easy to debug the payment flow.
 
   function simulatePaymentRequest() {
     setPaymentRequest({
       addressOrEns: "foo.eth",
-      amount: 100,
+      amount: products[0].amount,
       currency: FiatCurrency.USD,
-      memo: "hello-123"
+      memo: products[0].id
     })
   }
 
   function simulatePaymentResponse() {
     const realPayment = {
-      txHash: "0xe560822353a817ead3a1ab4eaec2e3fd0911017744a504c6745d16091a4032c6",
-      chainId: 8453
+      txHash: "0x4c27f588024e69be35b36f925fe4926db7bea7d7335fc078899e5403fb3c4c29",
+      chainId: 137
     } as Payment;
 
     const realPaymentRequest = {
       addressOrEns: "foo.eth",
-      amount: 450,
+      amount: 1,
       currency: FiatCurrency.BRL,
     } as PaymentRequestData;
 
@@ -135,12 +143,6 @@ export default function Home() {
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 
-  function resetPayment() {
-    setPaymentResponse(null);
-    setPaymentRequest(null);
-    setPaymentDetails(null);
-
-  }
 
   return (
     <>
@@ -175,6 +177,28 @@ export default function Home() {
                 {!paymentDetails &&
                   <Spinner size="3" />
                 }
+
+                {productOrdered && (
+                  <Flex p="2" direction="column" style={{ height: '100%' }} justify="between">
+                    <Box>
+                      <Flex align="center" width="100%" gap="3" mb="2">
+                        <Avatar
+                          size="3"
+                          radius="full"
+                          fallback={productOrdered.emoji}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'var(--gray-3)'
+                          }}
+                        />
+                        <Heading size="3">{productOrdered.title}</Heading>
+                      </Flex>
+                      <Text size="2" color="gray">{productOrdered.subtitle}</Text>
+                    </Box>
+                  </Flex>)}
+                <Separator size="4" mb="2" />
                 {paymentDetails &&
                   <DataList.Root style={{ width: '100%' }}>
                     <DataList.Item align="center">
@@ -202,7 +226,8 @@ export default function Home() {
                       </DataList.Value>
                     </DataList.Item>
                   </DataList.Root>}
-                <Button mt="4" variant="outline" color="gray" asChild>
+                <Separator size="4" mb="1" />
+                <Button variant="outline" color="gray" asChild>
                   <Link target="_blank" href={`https://yodl.me/tx/${paymentResponse?.txHash}`}>
                     Receipt
                   </Link>
