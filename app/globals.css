@@ -1,5 +1,5 @@
 /* Import Radix UI styles */
-@import '@radix-ui/themes/styles.css';
+@import "@radix-ui/themes/styles.css";
 
 :root {
   --font-geist-sans: var(--font-geist-sans, sans-serif);

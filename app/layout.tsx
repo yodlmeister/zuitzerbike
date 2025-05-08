@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Theme } from '@radix-ui/themes';
+import { Theme } from "@radix-ui/themes";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-
 
 export const metadata: Metadata = {
   title: "QuickiePay",
@@ -16,12 +15,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{
-        WebkitFontSmoothing: 'antialiased',
-        MozOsxFontSmoothing: 'grayscale'
-      }}>
+      <body
+        style={{
+          WebkitFontSmoothing: "antialiased",
+          MozOsxFontSmoothing: "grayscale",
+        }}
+      >
         <ThemeProvider attribute="class">
-          <Theme accentColor="blue" grayColor="slate" radius="medium" scaling="100%" appearance="dark">
+          <Theme
+            accentColor="blue"
+            grayColor="slate"
+            radius="medium"
+            scaling="100%"
+            appearance="dark"
+          >
             {children}
           </Theme>
         </ThemeProvider>

@@ -26,9 +26,13 @@ export type YodlPayment = {
   memo: string;
 };
 
-export async function fetchPayment(paymentResponse: Payment): Promise<YodlPayment> {
+export async function fetchPayment(
+  paymentResponse: Payment,
+): Promise<YodlPayment> {
   const { txHash, chainId } = paymentResponse;
-  const response = await fetch(`https://tx.yodl.me/api/v1/payments/${txHash}?chainId=${chainId}`);
+  const response = await fetch(
+    `https://tx.yodl.me/api/v1/payments/${txHash}?chainId=${chainId}`,
+  );
   const data = await response.json();
   return data.payment;
 }

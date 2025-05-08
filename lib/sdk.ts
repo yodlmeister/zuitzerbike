@@ -5,4 +5,3 @@ import { YODL_ORIGIN_URL } from "./constants";
 export const sdk = new YappSDK({
   origin: YODL_ORIGIN_URL,
 });
-
