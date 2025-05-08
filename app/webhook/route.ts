@@ -1,3 +1,4 @@
+import { fetchPayment } from "@/lib/indexerClient";
 import {
   verifiedJson,
   WebhookVerificationError,
@@ -21,7 +22,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await verifiedJson(req);
 
-    console.log(body);
+    console.log("body", body);
+
+    const payment = await fetchPayment(body);
+
+    console.log("payment", payment);
 
     return NextResponse.json({}, { status: 200 });
   } catch (error) {
