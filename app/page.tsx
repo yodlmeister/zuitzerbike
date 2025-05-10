@@ -33,53 +33,55 @@ import { fetchPayment, YodlPayment } from "@/lib/indexerClient";
 import { sdk } from "@/lib/sdk";
 import { RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
 import { config } from "process";
+import { BikeAvatar } from "@/components/BikeAvatar";
+import { useAccount } from "wagmi";
 
 
 export const slots = [
   {
     id: "1",
-    amount: 1,
+    amount: 15,
     emoji: "🚴"
   },
   {
     id: "2",
-    amount: 2,
+    amount: 15,
     emoji: "🚴‍♀️"
   },
   {
     id: "3",
-    amount: 3,
+    amount: 15,
     emoji: "🚴‍♂️"
   },
   {
     id: "4",
-    amount: 4,
+    amount: 15,
     emoji: "🚴‍♀️"
   },
   {
     id: "5",
-    amount: 5,
+    amount: 15,
     emoji: "🚴‍♂️"
   },
   {
     id: "6",
-    amount: 6,
-    emoji: "🚴‍♂️"
+    amount: 15,
+    emoji: "🚲"
   },
   {
     id: "7",
-    amount: 7,
-    emoji: "🚴‍♂️"
+    amount: 15,
+    emoji: "🚵🏼"
   },
   {
     id: "8",
-    amount: 8,
-    emoji: "🚴‍♂️"
+    amount: 15,
+    emoji: "🏇🏼"
   },
   {
     id: "9",
-    amount: 9,
-    emoji: "🚴‍♂️"
+    amount: 15,
+    emoji: "🚴🏿‍♀️"
   }
 ]
 
@@ -114,6 +116,7 @@ export type ProductDetails = {
 
 export default function Home() {
   const receiverEnsOrAddress = RECIPIENT_ENS_OR_ADDRESS;
+  const { address } = useAccount()
 
   const [paymentRequest, setPaymentRequest] =
     useState<PaymentRequestData | null>(null);
@@ -121,12 +124,11 @@ export default function Home() {
   const [paymentDetails, setPaymentDetails] = useState<YodlPayment | null>(
     null,
   );
-  const [userContext, setUserContext] = useState<UserContext | null>(null);
 
   const [paymentsHistory, setPaymentsHistory] = useState<PaymentSimple[]>([]);
+  const [senderPaymentsHistory, setSenderPaymentsHistory] = useState<PaymentSimple[]>([]);
 
   const isEmbedded = isInIframe();
-  const displayName = userDisplayName(userContext);
 
   const handleBuy = async (product: ProductDetails) => {
     try {
@@ -163,14 +165,6 @@ export default function Home() {
       setPaymentRequest(null);
     }
   };
-
-  useEffect(() => {
-    if (isEmbedded) {
-      sdk.getUserContext().then(setUserContext);
-    } else {
-      setUserContext(null);
-    }
-  }, [setUserContext, isEmbedded]);
 
   useEffect(() => {
     if (paymentResponse) {
@@ -223,6 +217,14 @@ export default function Home() {
       }
     });
   }, [])
+
+  useEffect(() => {
+    sdk.getPayments({ perPage: 1, sender: address, receiver: receiverEnsOrAddress }).then((resp) => {
+      if ('payments' in resp) {
+        setSenderPaymentsHistory(resp.payments);
+      }
+    });
+  }, [address])
 
   function slotBooked(slot: ProductDetails) {
     return paymentsHistory.some((p) => p.memo === slot.id);
@@ -351,6 +353,7 @@ export default function Home() {
                 <Grid columns="2" gap="2">
                   <Button variant="outline" color="gray" asChild>
                     <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
                       target="_blank"
                       href={`https://yodl.me/tx/${paymentResponse?.txHash}`}
                     >
@@ -369,73 +372,87 @@ export default function Home() {
     );
   }
 
-  return (
-    <>
-      <Flex direction="column" gap="6" align="center">
-        <Flex justify="between" width="100%" align="center">
-          {debugBox}
-          <Box>
-            {isEmbedded && (
-              <Button variant="outline" size="2">
-                {displayName}
-              </Button>
-            )}
-          </Box>
-        </Flex>
 
-        <Box mt="6" width="100%">
-          <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-            {availableDates.map((date) => {
-              return (
-                <>
-                  <Heading key={date} size="3" weight="medium" style={{ textAlign: "center" }}>{date}</Heading>
-                  {
-                    currentSlots.filter((slot) => slot.date === date).map((slot, idx) => (
-                      <Tooltip key={slot.id} content={slot.id}>
-                        <Button
-                          key={slot.id}
-                          onClick={() => handleBuy(slot)}
-                          size="3"
-                          style={{ width: "100%" }}
-                          disabled={!!paymentRequest || slotBooked(slot)}
-                        >
-                          <Avatar
-                            size="2"
-                            radius="full"
-                            fallback={slot.emoji}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          />
-                          Rent for ${slot.amount.toFixed(2)}
-                        </Button>
-                      </Tooltip>
-                    ))
-                  }
-                </>
-              )
-            })}
-          </Grid>
-        </Box>
+  function SenderPaymentsHistory() {
+    if (!senderPaymentsHistory) {
+      return null;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const upcoming = senderPaymentsHistory.filter((p) => {
+      const date = p.memo.split("_")[0];
+      return date >= today;
+    })
+
+    return (
+      <Grid columns="1" gap="3" align="center" width="100%">
+        <Heading size="3" weight="medium">My Bookings</Heading>
+        {upcoming.map((p) => (
+          <Link key={p.txHash}
+            style={{ textDecoration: "none", color: "inherit" }}
+            href={`/tx?txHash=${p.txHash}&chainId=${p.chainId}`}>
+            <Card>
+              <Flex direction="row" align="center" justify="between" width="100%">
+                <Flex><Text>Bike: #{p.memo.split("_")[1]}</Text></Flex>
+                <Flex><Text>{p.memo.split("_")[0]}</Text></Flex>
+              </Flex>
+            </Card>
+          </Link>
+        ))
+        }
+        {upcoming.length === 0 && <Text weight="light" color="gray">No upcoming bookings</Text>}
+      </Grid >
+    )
+  }
+
+  return (
+
+    <Grid columns="1" align="center">
+      <SenderPaymentsHistory />
+      <Box mt="6" width="100%">
+        {availableDates.map((date) => {
+          return (
+            <Grid key={date} columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+              <Flex justify="between">
+                <Heading size="3" weight="medium" style={{ textAlign: "center" }}>Booking</Heading>
+                <Heading size="3" weight="medium" style={{ textAlign: "center" }}>{date}</Heading>
+              </Flex>
+
+              {
+                currentSlots.filter((slot) => slot.date === date).map((slot, idx) => (
+                  <Tooltip key={slot.id} content={slot.id}>
+                    <Button
+                      key={slot.id}
+                      onClick={() => handleBuy(slot)}
+                      size="3"
+                      style={{ width: "100%" }}
+                      disabled={!!paymentRequest || slotBooked(slot)}
+                    >
+                      <Avatar
+                        size="2"
+                        radius="full"
+                        fallback={slot.emoji}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      />
+                      Rent for ${slot.amount.toFixed(2)}
+                    </Button>
+                  </Tooltip>
+                ))
+              }
+            </Grid>
+          )
+        })}
+      </Box>
+      <Flex justify="between" mt="9" width="100%" align="center">
+        {debugBox}
       </Flex>
-    </>
+    </Grid>
+
   );
 }
 
-
-export function BikeAvatar({ emoji }: { emoji: string }) {
-  return <Avatar
-    size="3"
-    radius="full"
-    fallback={emoji}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "var(--gray-3)",
-    }}
-  />;
-}
 

@@ -2,17 +2,24 @@ import type { Metadata } from "next";
 import { Box, Container, Theme } from "@radix-ui/themes";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import { Header } from "@/components/Header";
+
+import { headers } from 'next/headers' // added
+import ContextProvider from '@/context'
 
 export const metadata: Metadata = {
-  title: "QuickiePay",
-  description: "Fast and secure payment solution",
-};
+  title: 'ZuitzerBike',
+  description: 'Powered by Reown'
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersObj = await headers();
+  const cookies = headersObj.get('cookie')
+
   return (
     <html lang="en">
       <body
@@ -30,9 +37,12 @@ export default function RootLayout({
             appearance="dark"
           >
             <Box style={{ minHeight: "100vh" }} p="6">
-              <Container size="3">
-                {children}
-              </Container>
+              <ContextProvider cookies={cookies}>
+                <Container size="3">
+                  <Header />
+                  {children}
+                </Container>
+              </ContextProvider>
             </Box>
           </Theme>
         </ThemeProvider>

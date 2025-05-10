@@ -5,9 +5,10 @@ import { PaymentSimple } from "@yodlpay/yapp-sdk";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Hex } from "viem";
-import { BikeAvatar, slots } from "../page";
+import { slots } from "../page";
 import { Text, Card, Heading, Separator, Grid, Flex } from "@radix-ui/themes";
 import truncateEthAddress from "truncate-eth-address";
+import { BikeAvatar } from "@/components/BikeAvatar";
 
 export default function Home() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentSimple | null>(null);
