@@ -5,17 +5,19 @@ import { PaymentSimple } from "@yodlpay/yapp-sdk";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Hex } from "viem";
-import { slots } from "../page";
 import { Text, Card, Heading, Separator, Grid, Flex } from "@radix-ui/themes";
 import truncateEthAddress from "truncate-eth-address";
 import { BikeAvatar } from "@/components/BikeAvatar";
+import { slots } from "@/lib/slots";
 
 export default function Home() {
-  const [paymentDetails, setPaymentDetails] = useState<PaymentSimple | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentSimple | null>(
+    null,
+  );
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const txHash = searchParams.get('txHash');
+    const txHash = searchParams.get("txHash");
     if (txHash) {
       sdk.getPayment(txHash as Hex).then((resp) => {
         if (resp) {
@@ -25,19 +27,25 @@ export default function Home() {
     }
   }, [searchParams]);
 
-
   if (!paymentDetails) {
     return <div>Loading...</div>;
   }
 
-  const { memo, invoiceAmount, invoiceCurrency, senderAddress, senderEnsPrimaryName } = paymentDetails;
+  const {
+    memo,
+    invoiceAmount,
+    invoiceCurrency,
+    senderAddress,
+    senderEnsPrimaryName,
+  } = paymentDetails;
   const date = memo.split("_")[0];
   const slot = memo.split("_")[1];
 
   const product = slots.find((p) => p.id === slot);
   const dt = new Date(date);
 
-  const senderDisplayName = senderEnsPrimaryName || truncateEthAddress(senderAddress);
+  const senderDisplayName =
+    senderEnsPrimaryName || truncateEthAddress(senderAddress);
 
   return (
     <Card>
@@ -50,7 +58,7 @@ export default function Home() {
             </Heading>
           </Flex>
           <Heading size="3" weight="light">
-            ({dt.toLocaleDateString('en-US', { weekday: "long" })}) {date}
+            ({dt.toLocaleDateString("en-US", { weekday: "long" })}) {date}
           </Heading>
         </Flex>
         <Separator size="4" />

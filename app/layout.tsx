@@ -4,13 +4,13 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Header } from "@/components/Header";
 
-import { headers } from 'next/headers' // added
-import ContextProvider from '@/context'
+import { headers } from "next/headers"; // added
+import ContextProvider from "@/context";
 
 export const metadata: Metadata = {
-  title: 'ZuitzerBike',
-  description: 'Powered by Reown'
-}
+  title: "ZuitzerBike",
+  description: "Powered by Reown",
+};
 
 export default async function RootLayout({
   children,
@@ -18,7 +18,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headersObj = await headers();
-  const cookies = headersObj.get('cookie')
+  const cookies = headersObj.get("cookie");
 
   return (
     <html lang="en">

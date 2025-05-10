@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Button,
   Flex,
-  Container,
   Text,
   Card,
   Heading,
@@ -24,70 +23,17 @@ import {
   Payment,
   PaymentRequestData,
   PaymentSimple,
-  UserContext,
 } from "@yodlpay/yapp-sdk";
-import productsData from "./data/products.json";
-import { userDisplayName } from "@/lib/helpers";
 import Link from "next/link";
 import { fetchPayment, YodlPayment } from "@/lib/indexerClient";
 import { sdk } from "@/lib/sdk";
 import { RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
-import { config } from "process";
 import { BikeAvatar } from "@/components/BikeAvatar";
 import { useAccount } from "wagmi";
+import { slots } from "@/lib/slots";
 
-
-export const slots = [
-  {
-    id: "1",
-    amount: 15,
-    emoji: "🚴"
-  },
-  {
-    id: "2",
-    amount: 15,
-    emoji: "🚴‍♀️"
-  },
-  {
-    id: "3",
-    amount: 15,
-    emoji: "🚴‍♂️"
-  },
-  {
-    id: "4",
-    amount: 15,
-    emoji: "🚴‍♀️"
-  },
-  {
-    id: "5",
-    amount: 15,
-    emoji: "🚴‍♂️"
-  },
-  {
-    id: "6",
-    amount: 15,
-    emoji: "🚲"
-  },
-  {
-    id: "7",
-    amount: 15,
-    emoji: "🚵🏼"
-  },
-  {
-    id: "8",
-    amount: 15,
-    emoji: "🏇🏼"
-  },
-  {
-    id: "9",
-    amount: 15,
-    emoji: "🚴🏿‍♀️"
-  }
-]
-
-
-const todayStr = new Date().toISOString().split('T')[0];
-const tmrwStr = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+const todayStr = new Date().toISOString().split("T")[0];
+// const tmrwStr = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
 const availableDates = [
   todayStr,
@@ -102,7 +48,7 @@ availableDates.forEach((date) => {
       id: `${date}_${slot.id}`,
       amount: slot.amount,
       date: date,
-      emoji: slot.emoji
+      emoji: slot.emoji,
     });
   });
 });
@@ -116,7 +62,7 @@ export type ProductDetails = {
 
 export default function Home() {
   const receiverEnsOrAddress = RECIPIENT_ENS_OR_ADDRESS;
-  const { address } = useAccount()
+  const { address } = useAccount();
 
   const [paymentRequest, setPaymentRequest] =
     useState<PaymentRequestData | null>(null);
@@ -126,7 +72,9 @@ export default function Home() {
   );
 
   const [paymentsHistory, setPaymentsHistory] = useState<PaymentSimple[]>([]);
-  const [senderPaymentsHistory, setSenderPaymentsHistory] = useState<PaymentSimple[]>([]);
+  const [senderPaymentsHistory, setSenderPaymentsHistory] = useState<
+    PaymentSimple[]
+  >([]);
 
   const isEmbedded = isInIframe();
 
@@ -172,7 +120,6 @@ export default function Home() {
     }
   }, [paymentResponse]);
 
-
   const productOrdered =
     paymentDetails && currentSlots.find((p) => p.id === paymentDetails?.memo);
 
@@ -212,19 +159,25 @@ export default function Home() {
 
   useEffect(() => {
     sdk.getPayments({ perPage: 100 }).then((resp) => {
-      if ('payments' in resp) {
+      if ("payments" in resp) {
         setPaymentsHistory(resp.payments);
       }
     });
-  }, [])
+  }, []);
 
   useEffect(() => {
-    sdk.getPayments({ perPage: 1, sender: address, receiver: receiverEnsOrAddress }).then((resp) => {
-      if ('payments' in resp) {
-        setSenderPaymentsHistory(resp.payments);
-      }
-    });
-  }, [address])
+    sdk
+      .getPayments({
+        perPage: 1,
+        sender: address,
+        receiver: receiverEnsOrAddress,
+      })
+      .then((resp) => {
+        if ("payments" in resp) {
+          setSenderPaymentsHistory(resp.payments);
+        }
+      });
+  }, [address, receiverEnsOrAddress]);
 
   function slotBooked(slot: ProductDetails) {
     return paymentsHistory.some((p) => p.memo === slot.id);
@@ -304,7 +257,6 @@ export default function Home() {
                           <BikeAvatar emoji={productOrdered.emoji} />
                           <Heading size="3">{productOrdered.date}</Heading>
                         </Flex>
-
                       </Box>
                     </Flex>
                   </Card>
@@ -372,54 +324,85 @@ export default function Home() {
     );
   }
 
-
   function SenderPaymentsHistory() {
     if (!senderPaymentsHistory) {
       return null;
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     const upcoming = senderPaymentsHistory.filter((p) => {
       const date = p.memo.split("_")[0];
       return date >= today;
-    })
+    });
 
     return (
       <Grid columns="1" gap="3" align="center" width="100%">
-        <Heading size="3" weight="medium">My Bookings</Heading>
+        <Heading size="3" weight="medium">
+          My Bookings
+        </Heading>
         {upcoming.map((p) => (
-          <Link key={p.txHash}
+          <Link
+            key={p.txHash}
             style={{ textDecoration: "none", color: "inherit" }}
-            href={`/tx?txHash=${p.txHash}&chainId=${p.chainId}`}>
+            href={`/tx?txHash=${p.txHash}&chainId=${p.chainId}`}
+          >
             <Card>
-              <Flex direction="row" align="center" justify="between" width="100%">
-                <Flex><Text>Bike: #{p.memo.split("_")[1]}</Text></Flex>
-                <Flex><Text>{p.memo.split("_")[0]}</Text></Flex>
+              <Flex
+                direction="row"
+                align="center"
+                justify="between"
+                width="100%"
+              >
+                <Flex>
+                  <Text>Bike: #{p.memo.split("_")[1]}</Text>
+                </Flex>
+                <Flex>
+                  <Text>{p.memo.split("_")[0]}</Text>
+                </Flex>
               </Flex>
             </Card>
           </Link>
-        ))
-        }
-        {upcoming.length === 0 && <Text weight="light" color="gray">No upcoming bookings</Text>}
-      </Grid >
-    )
+        ))}
+        {upcoming.length === 0 && (
+          <Text weight="light" color="gray">
+            No upcoming bookings
+          </Text>
+        )}
+      </Grid>
+    );
   }
 
   return (
-
     <Grid columns="1" align="center">
       <SenderPaymentsHistory />
       <Box mt="6" width="100%">
         {availableDates.map((date) => {
           return (
-            <Grid key={date} columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+            <Grid
+              key={date}
+              columns={{ initial: "1", sm: "2", md: "3" }}
+              gap="4"
+            >
               <Flex justify="between">
-                <Heading size="3" weight="medium" style={{ textAlign: "center" }}>Booking</Heading>
-                <Heading size="3" weight="medium" style={{ textAlign: "center" }}>{date}</Heading>
+                <Heading
+                  size="3"
+                  weight="medium"
+                  style={{ textAlign: "center" }}
+                >
+                  Booking
+                </Heading>
+                <Heading
+                  size="3"
+                  weight="medium"
+                  style={{ textAlign: "center" }}
+                >
+                  {date}
+                </Heading>
               </Flex>
 
-              {
-                currentSlots.filter((slot) => slot.date === date).map((slot, idx) => (
+              {currentSlots
+                .filter((slot) => slot.date === date)
+                .map((slot) => (
                   <Tooltip key={slot.id} content={slot.id}>
                     <Button
                       key={slot.id}
@@ -441,18 +424,14 @@ export default function Home() {
                       Rent for ${slot.amount.toFixed(2)}
                     </Button>
                   </Tooltip>
-                ))
-              }
+                ))}
             </Grid>
-          )
+          );
         })}
       </Box>
       <Flex justify="between" mt="9" width="100%" align="center">
         {debugBox}
       </Flex>
     </Grid>
-
   );
 }
-
-

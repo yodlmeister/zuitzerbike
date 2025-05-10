@@ -24,17 +24,19 @@ export function Header() {
   let UserButton;
 
   if (isEmbedded) {
-    UserButton = <Button variant="outline">
-      {displayName}
-    </Button>
+    UserButton = <Button variant="outline">{displayName}</Button>;
   } else {
-    UserButton = <appkit-button />
+    UserButton = <appkit-button />;
   }
 
   return (
     <>
       <Flex mb="3" justify="between">
-        <Heading size="5" weight="light"><Link style={{ textDecoration: "none", color: "inherit" }} href="/">ZuitzerBike</Link></Heading>
+        <Heading size="5" weight="light">
+          <Link style={{ textDecoration: "none", color: "inherit" }} href="/">
+            ZuitzerBike
+          </Link>
+        </Heading>
         {UserButton}
       </Flex>
       <Separator mb="3" size="4" />
