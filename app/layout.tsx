@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Theme } from "@radix-ui/themes";
+import { Box, Container, Theme } from "@radix-ui/themes";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
@@ -29,7 +29,11 @@ export default function RootLayout({
             scaling="100%"
             appearance="dark"
           >
-            {children}
+            <Box style={{ minHeight: "100vh" }} p="6">
+              <Container size="3">
+                {children}
+              </Container>
+            </Box>
           </Theme>
         </ThemeProvider>
       </body>

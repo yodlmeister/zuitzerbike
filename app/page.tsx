@@ -16,12 +16,14 @@ import {
   Separator,
   Spinner,
   Theme,
+  Tooltip,
 } from "@radix-ui/themes";
 import {
   FiatCurrency,
   isInIframe,
   Payment,
   PaymentRequestData,
+  PaymentSimple,
   UserContext,
 } from "@yodlpay/yapp-sdk";
 import productsData from "./data/products.json";
@@ -30,15 +32,84 @@ import Link from "next/link";
 import { fetchPayment, YodlPayment } from "@/lib/indexerClient";
 import { sdk } from "@/lib/sdk";
 import { RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
+import { config } from "process";
 
-const { products } = productsData;
+
+export const slots = [
+  {
+    id: "1",
+    amount: 1,
+    emoji: "🚴"
+  },
+  {
+    id: "2",
+    amount: 2,
+    emoji: "🚴‍♀️"
+  },
+  {
+    id: "3",
+    amount: 3,
+    emoji: "🚴‍♂️"
+  },
+  {
+    id: "4",
+    amount: 4,
+    emoji: "🚴‍♀️"
+  },
+  {
+    id: "5",
+    amount: 5,
+    emoji: "🚴‍♂️"
+  },
+  {
+    id: "6",
+    amount: 6,
+    emoji: "🚴‍♂️"
+  },
+  {
+    id: "7",
+    amount: 7,
+    emoji: "🚴‍♂️"
+  },
+  {
+    id: "8",
+    amount: 8,
+    emoji: "🚴‍♂️"
+  },
+  {
+    id: "9",
+    amount: 9,
+    emoji: "🚴‍♂️"
+  }
+]
+
+
+const todayStr = new Date().toISOString().split('T')[0];
+const tmrwStr = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+const availableDates = [
+  todayStr,
+  // tmrwStr
+];
+
+const currentSlots: ProductDetails[] = [];
+
+availableDates.forEach((date) => {
+  slots.forEach((slot) => {
+    currentSlots.push({
+      id: `${date}_${slot.id}`,
+      amount: slot.amount,
+      date: date,
+      emoji: slot.emoji
+    });
+  });
+});
 
 export type ProductDetails = {
   id: string;
-  title: string;
-  subtitle: string;
   amount: number;
-  currency: string;
+  date: string;
+  emoji: string;
 };
 
 export default function Home() {
@@ -52,6 +123,8 @@ export default function Home() {
   );
   const [userContext, setUserContext] = useState<UserContext | null>(null);
 
+  const [paymentsHistory, setPaymentsHistory] = useState<PaymentSimple[]>([]);
+
   const isEmbedded = isInIframe();
   const displayName = userDisplayName(userContext);
 
@@ -60,7 +133,7 @@ export default function Home() {
       const paymentRequest = {
         addressOrEns: receiverEnsOrAddress,
         amount: product.amount,
-        currency: product.currency,
+        currency: FiatCurrency.USD,
         memo: product.id, // Unique identifier for this order
         // redirectUrl only required when running standalone
         redirectUrl: isEmbedded ? undefined : window.location.href,
@@ -105,8 +178,9 @@ export default function Home() {
     }
   }, [paymentResponse]);
 
+
   const productOrdered =
-    paymentDetails && products.find((p) => p.id === paymentDetails?.memo);
+    paymentDetails && currentSlots.find((p) => p.id === paymentDetails?.memo);
 
   function resetPayment() {
     setPaymentResponse(null);
@@ -119,17 +193,17 @@ export default function Home() {
   function simulatePaymentRequest() {
     setPaymentRequest({
       addressOrEns: "foo.eth",
-      amount: products[0].amount,
+      amount: currentSlots[0].amount,
       currency: FiatCurrency.USD,
-      memo: products[0].id,
+      memo: currentSlots[0].id,
     });
   }
 
   function simulatePaymentResponse() {
     const realPayment = {
       txHash:
-        "0x4c27f588024e69be35b36f925fe4926db7bea7d7335fc078899e5403fb3c4c29",
-      chainId: 137,
+        "0x793cc2b237a69636e7c7cffed6d57cd9a25dd3a399a83e2d3ad1443b04cadd7b",
+      chainId: 8453,
     } as Payment;
 
     const realPaymentRequest = {
@@ -140,6 +214,18 @@ export default function Home() {
 
     setPaymentResponse(realPayment);
     setPaymentRequest(realPaymentRequest);
+  }
+
+  useEffect(() => {
+    sdk.getPayments({ perPage: 100 }).then((resp) => {
+      if ('payments' in resp) {
+        setPaymentsHistory(resp.payments);
+      }
+    });
+  }, [])
+
+  function slotBooked(slot: ProductDetails) {
+    return paymentsHistory.some((p) => p.memo === slot.id);
   }
 
   const debugBox = (
@@ -213,22 +299,10 @@ export default function Home() {
                     >
                       <Box>
                         <Flex align="center" width="100%" gap="3" mb="2">
-                          <Avatar
-                            size="3"
-                            radius="full"
-                            fallback={productOrdered.emoji}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: "var(--gray-3)",
-                            }}
-                          />
-                          <Heading size="3">{productOrdered.title}</Heading>
+                          <BikeAvatar emoji={productOrdered.emoji} />
+                          <Heading size="3">{productOrdered.date}</Heading>
                         </Flex>
-                        <Text size="2" color="gray">
-                          {productOrdered.subtitle}
-                        </Text>
+
                       </Box>
                     </Flex>
                   </Card>
@@ -297,69 +371,71 @@ export default function Home() {
 
   return (
     <>
-      <Box style={{ minHeight: "100vh" }} p="6">
-        <Container size="3">
-          <Flex direction="column" gap="6" align="center">
-            <Flex justify="between" width="100%" align="center">
-              {debugBox}
-              <Box>
-                {isEmbedded && (
-                  <Button variant="outline" size="2">
-                    {displayName}
-                  </Button>
-                )}
-              </Box>
-            </Flex>
+      <Flex direction="column" gap="6" align="center">
+        <Flex justify="between" width="100%" align="center">
+          {debugBox}
+          <Box>
+            {isEmbedded && (
+              <Button variant="outline" size="2">
+                {displayName}
+              </Button>
+            )}
+          </Box>
+        </Flex>
 
-            <Box mt="6" width="100%">
-              <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-                {products.map((product) => (
-                  <Card key={product.id} size="2">
-                    <Flex
-                      direction="column"
-                      style={{ height: "100%" }}
-                      justify="between"
-                    >
-                      <Box>
-                        <Flex align="center" width="100%" gap="3" mb="2">
+        <Box mt="6" width="100%">
+          <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+            {availableDates.map((date) => {
+              return (
+                <>
+                  <Heading key={date} size="3" weight="medium" style={{ textAlign: "center" }}>{date}</Heading>
+                  {
+                    currentSlots.filter((slot) => slot.date === date).map((slot, idx) => (
+                      <Tooltip key={slot.id} content={slot.id}>
+                        <Button
+                          key={slot.id}
+                          onClick={() => handleBuy(slot)}
+                          size="3"
+                          style={{ width: "100%" }}
+                          disabled={!!paymentRequest || slotBooked(slot)}
+                        >
                           <Avatar
-                            size="3"
+                            size="2"
                             radius="full"
-                            fallback={product.emoji}
+                            fallback={slot.emoji}
                             style={{
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              backgroundColor: "var(--gray-3)",
                             }}
                           />
-                          <Heading size="3">{product.title}</Heading>
-                        </Flex>
-
-                        <Text size="2" color="gray">
-                          {product.subtitle}
-                        </Text>
-                      </Box>
-
-                      <Box mt="3">
-                        <Button
-                          onClick={() => handleBuy(product)}
-                          size="2"
-                          style={{ width: "100%" }}
-                          disabled={!!paymentRequest}
-                        >
-                          Buy for ${product.amount.toFixed(2)} $
-                          {product.currency}
+                          Rent for ${slot.amount.toFixed(2)}
                         </Button>
-                      </Box>
-                    </Flex>
-                  </Card>
-                ))}
-              </Grid>
-            </Box>
-          </Flex>
-        </Container>
-      </Box>
+                      </Tooltip>
+                    ))
+                  }
+                </>
+              )
+            })}
+          </Grid>
+        </Box>
+      </Flex>
     </>
   );
 }
+
+
+export function BikeAvatar({ emoji }: { emoji: string }) {
+  return <Avatar
+    size="3"
+    radius="full"
+    fallback={emoji}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "var(--gray-3)",
+    }}
+  />;
+}
+
