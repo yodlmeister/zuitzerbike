@@ -81,7 +81,7 @@ export default function Home() {
   const handleBuy = async (product: ProductDetails) => {
     try {
       const paymentRequest = {
-        addressOrEns: receiverEnsOrAddress,
+        addressOrEns: process.env.NEXT_PUBLIC_ENS,
         amount: product.amount,
         currency: FiatCurrency.USD,
         memo: product.id, // Unique identifier for this order
@@ -188,8 +188,8 @@ export default function Home() {
   const debugBox = (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <Button variant="soft">
-          Simulate
+        <Button variant="ghost">
+          Debugging
           <DropdownMenu.TriggerIcon />
         </Button>
       </DropdownMenu.Trigger>
