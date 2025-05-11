@@ -6,12 +6,12 @@ export const slots = [
   },
   {
     id: "2",
-    amount: 1,
+    amount: 15,
     emoji: "🚴‍♀️",
   },
   {
     id: "3",
-    amount: 1,
+    amount: 15,
     emoji: "🚴‍♂️",
   },
   {
