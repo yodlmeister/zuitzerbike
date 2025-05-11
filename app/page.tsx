@@ -166,6 +166,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!address) return;
+
     sdk
       .getPayments({
         perPage: 1,
