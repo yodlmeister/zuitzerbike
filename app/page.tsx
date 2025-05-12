@@ -73,7 +73,7 @@ availableDates.forEach((date) => {
 });
 
 export function isValidPayment(payment: PaymentSimple) {
-  const memo = payment.memo;
+  // const memo = payment.memo;
 
   if (payment.tokenOutSymbol == "USDC") {
     return Number(payment.tokenOutAmountGross) >= 15;
