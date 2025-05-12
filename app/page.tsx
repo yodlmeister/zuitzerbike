@@ -33,12 +33,7 @@ import { BikeAvatar } from "@/components/BikeAvatar";
 import { useAccount } from "wagmi";
 import { slots } from "@/lib/slots";
 import { IntrazuitzClient } from "@/lib/intrazuitzClient";
-import {
-  CheckCircledIcon,
-  Half2Icon,
-  Link2Icon,
-  LinkNone2Icon,
-} from "@radix-ui/react-icons";
+import { Link2Icon, LinkNone2Icon } from "@radix-ui/react-icons";
 
 const todayStr = new Date().toISOString().split("T")[0];
 

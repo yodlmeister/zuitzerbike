@@ -260,7 +260,7 @@ export default function HistoryPage() {
 
                     // For recent tab, group by transaction date
                     if (activeTab === "recent") {
-                      filteredPayments.forEach((payment, index) => {
+                      filteredPayments.forEach((payment) => {
                         const txDate = new Date(
                           payment.blockTimestamp,
                         ).toLocaleDateString("en-US");
@@ -330,7 +330,7 @@ export default function HistoryPage() {
                       });
                     } else {
                       // For upcoming and past tabs, group by booking date
-                      filteredPayments.forEach((payment, index) => {
+                      filteredPayments.forEach((payment) => {
                         const parts = payment.memo.split("_");
                         const bookingDate = parts[0];
                         const slotId = parts[1] || "N/A";
