@@ -388,11 +388,11 @@ export default function Home() {
   // Format date for display (e.g., May 15, 2025)
   const formatDateForDisplay = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      weekday: 'short'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      weekday: "short",
     });
   };
 
@@ -400,15 +400,9 @@ export default function Home() {
     <Grid columns="1" align="center">
       <SenderPaymentsHistory />
       <Box mt="6" width="100%">
-        <Grid
-          columns={{ initial: "1", sm: "1", md: "1" }}
-          gap="4"
-        >
+        <Grid columns={{ initial: "1", sm: "1", md: "1" }} gap="4">
           <Flex justify="between" align="center">
-            <Heading
-              size="3"
-              weight="medium"
-            >
+            <Heading size="3" weight="medium">
               Booking
             </Heading>
 
@@ -428,24 +422,24 @@ export default function Home() {
                     {formatDateForDisplay(date)}
                   </DropdownMenu.Item>
                 ))}
-                {availableDates.length > 30 && (
-                  <DropdownMenu.Separator />
-                )}
+                {availableDates.length > 30 && <DropdownMenu.Separator />}
                 {availableDates.length > 30 && (
                   <DropdownMenu.Item
-                    onSelect={() => setSelectedDate(availableDates[availableDates.length - 1])}
+                    onSelect={() =>
+                      setSelectedDate(availableDates[availableDates.length - 1])
+                    }
                   >
-                    Last day: {formatDateForDisplay(availableDates[availableDates.length - 1])}
+                    Last day:{" "}
+                    {formatDateForDisplay(
+                      availableDates[availableDates.length - 1],
+                    )}
                   </DropdownMenu.Item>
                 )}
               </DropdownMenu.Content>
             </DropdownMenu.Root>
           </Flex>
 
-          <Grid
-            columns={{ initial: "1", sm: "2", md: "3" }}
-            gap="4"
-          >
+          <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
             {currentSlots
               .filter((slot) => slot.date === selectedDate)
               .map((slot) => (
