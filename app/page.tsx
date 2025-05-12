@@ -219,7 +219,9 @@ export default function Home() {
   }, [address, receiverEnsOrAddress]);
 
   function slotBooked(slot: ProductDetails) {
-    return paymentsHistory.some((p) => p.memo === slot.id);
+    return paymentsHistory.some(
+      (p) => p.memo === slot.id || p.memo === `${slot.id}_vpn`,
+    );
   }
 
   useEffect(() => {
