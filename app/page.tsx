@@ -17,6 +17,7 @@ import {
   Theme,
   Tooltip,
   Callout,
+  VisuallyHidden,
 } from "@radix-ui/themes";
 import {
   FiatCurrency,
@@ -521,9 +522,11 @@ export default function Home() {
           </Grid>
         </Grid>
       </Box>
-      <Flex justify="between" mt="9" width="100%" align="center">
-        {debugBox}
-      </Flex>
+      <VisuallyHidden>
+        <Flex justify="between" mt="9" width="100%" align="center">
+          {debugBox}
+        </Flex>
+      </VisuallyHidden>
     </Grid>
   );
 }
