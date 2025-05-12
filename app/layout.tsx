@@ -38,7 +38,7 @@ export default async function RootLayout({
           >
             <Box style={{ minHeight: "100vh" }} p="6">
               <ContextProvider cookies={cookies}>
-                <Container size="3">
+                <Container size="1">
                   <Header />
                   {children}
                 </Container>

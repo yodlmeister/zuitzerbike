@@ -435,7 +435,7 @@ export default function Home() {
             </Callout.Root>
           )}
 
-          {!isIntraZuitz && (
+          {INTRAZUITZ_URL && !isIntraZuitz && (
             <Callout.Root color="gray">
               <Callout.Icon>
                 <LinkNone2Icon />
@@ -483,7 +483,7 @@ export default function Home() {
             </DropdownMenu.Root>
           </Flex>
 
-          <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+          <Grid columns={{ initial: "1", sm: "1", md: "1" }} gap="4">
             {currentSlots
               .filter((slot) => slot.date === selectedDate)
               .map((slot) => (

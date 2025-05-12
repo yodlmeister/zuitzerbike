@@ -31,7 +31,7 @@ export function Header() {
 
   return (
     <>
-      <Flex mb="3" justify="between">
+      <Flex mb="3" justify="between" align="center">
         <Heading size="5" weight="light">
           <Link style={{ textDecoration: "none", color: "inherit" }} href="/">
             ZuitzerBike
