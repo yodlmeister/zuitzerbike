@@ -12,10 +12,14 @@ export function userDisplayName(userContext: UserContext | undefined | null) {
 }
 
 export function isValidPayment(payment: PaymentSimple) {
-  // const memo = payment.memo;
+  const discount = payment.memo.split("_")[2];
 
   if (payment.tokenOutSymbol == "USDC") {
-    return Number(payment.tokenOutAmountGross) >= 15;
+    if (discount) {
+      return Number(payment.tokenOutAmountGross) >= 5;
+    } else {
+      return Number(payment.tokenOutAmountGross) >= 15;
+    }
   } else {
     return false;
   }

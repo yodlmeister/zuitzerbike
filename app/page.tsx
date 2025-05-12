@@ -72,7 +72,6 @@ availableDates.forEach((date) => {
   });
 });
 
-
 type ProductDetails = {
   id: string;
   amount: number;
@@ -103,7 +102,7 @@ export default function Home() {
 
   function applyIntraZuitzDiscount(amount: number) {
     if (isIntraZuitz) {
-      return amount * 0.5;
+      return 5;
     } else {
       return amount;
     }
@@ -111,11 +110,16 @@ export default function Home() {
 
   const handleBuy = async (product: ProductDetails) => {
     try {
+      // memo: date_slot(_discount)
+      // parse: [date, slot, discount] = memo.split("_")
+
+      const memo = isIntraZuitz ? `${product.id}_vpn` : product.id;
+
       const paymentRequest = {
         addressOrEns: process.env.NEXT_PUBLIC_ENS,
         amount: applyIntraZuitzDiscount(product.amount),
         currency: FiatCurrency.USD,
-        memo: product.id, // Unique identifier for this order
+        memo, // Unique identifier for this order
         // redirectUrl only required when running standalone
         redirectUrl: isEmbedded ? undefined : window.location.href,
       } as PaymentRequestData;

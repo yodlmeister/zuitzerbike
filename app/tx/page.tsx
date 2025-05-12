@@ -39,8 +39,8 @@ export default function Home() {
     senderAddress,
     senderEnsPrimaryName,
   } = paymentDetails;
-  const date = memo.split("_")[0];
-  const slot = memo.split("_")[1];
+
+  const [date, slot] = memo.split("_");
 
   const product = slots.find((p) => p.id === slot);
   const dt = new Date(date);
