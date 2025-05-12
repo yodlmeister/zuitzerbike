@@ -34,11 +34,11 @@ import { useAccount } from "wagmi";
 import { slots } from "@/lib/slots";
 import { IntrazuitzClient } from "@/lib/intrazuitzClient";
 import { Link2Icon, LinkNone2Icon } from "@radix-ui/react-icons";
+import { isValidPayment } from "@/lib/helpers";
 
 const todayStr = new Date().toISOString().split("T")[0];
 
 let intrazuitzClient: IntrazuitzClient | null = null;
-
 if (INTRAZUITZ_URL) {
   intrazuitzClient = new IntrazuitzClient(INTRAZUITZ_URL);
 }
@@ -72,17 +72,8 @@ availableDates.forEach((date) => {
   });
 });
 
-export function isValidPayment(payment: PaymentSimple) {
-  // const memo = payment.memo;
 
-  if (payment.tokenOutSymbol == "USDC") {
-    return Number(payment.tokenOutAmountGross) >= 15;
-  } else {
-    return false;
-  }
-}
-
-export type ProductDetails = {
+type ProductDetails = {
   id: string;
   amount: number;
   date: string;
