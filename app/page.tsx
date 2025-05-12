@@ -208,7 +208,7 @@ export default function Home() {
 
     sdk
       .getPayments({
-        perPage: 1,
+        perPage: 20,
         sender: address,
         receiver: receiverEnsOrAddress,
       })
