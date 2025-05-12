@@ -9,6 +9,7 @@ import { Text, Card, Heading, Separator, Grid, Flex } from "@radix-ui/themes";
 import truncateEthAddress from "truncate-eth-address";
 import { BikeAvatar } from "@/components/BikeAvatar";
 import { slots } from "@/lib/slots";
+import { isValidPayment } from "@/lib/helpers";
 
 export default function Home() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentSimple | null>(
@@ -46,6 +47,10 @@ export default function Home() {
 
   const senderDisplayName =
     senderEnsPrimaryName || truncateEthAddress(senderAddress);
+
+  if (!isValidPayment(paymentDetails)) {
+    return <Card>Invalid payment</Card>;
+  }
 
   return (
     <Card>
