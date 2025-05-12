@@ -18,7 +18,7 @@ import { RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
 import Link from "next/link";
 import truncateEthAddress from "truncate-eth-address";
 import { slots } from "@/lib/slots";
-import { isValidPayment } from "../page";
+import { isValidPayment } from "@/lib/helpers";
 
 type TabType = "recent" | "upcoming" | "past" | "invalid";
 

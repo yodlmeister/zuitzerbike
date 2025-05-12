@@ -1,4 +1,4 @@
-import { UserContext } from "@yodlpay/yapp-sdk";
+import { PaymentSimple, UserContext } from "@yodlpay/yapp-sdk";
 import truncateEthAddress from "truncate-eth-address";
 
 export function userDisplayName(userContext: UserContext | undefined | null) {
@@ -8,5 +8,15 @@ export function userDisplayName(userContext: UserContext | undefined | null) {
     return userContext.primaryEnsName;
   } else {
     return truncateEthAddress(userContext.address);
+  }
+}
+
+export function isValidPayment(payment: PaymentSimple) {
+  // const memo = payment.memo;
+
+  if (payment.tokenOutSymbol == "USDC") {
+    return Number(payment.tokenOutAmountGross) >= 15;
+  } else {
+    return false;
   }
 }
