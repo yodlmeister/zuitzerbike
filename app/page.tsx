@@ -16,6 +16,7 @@ import {
   Spinner,
   Theme,
   Tooltip,
+  Callout,
 } from "@radix-ui/themes";
 import {
   FiatCurrency,
@@ -27,12 +28,25 @@ import {
 import Link from "next/link";
 import { fetchPayment, YodlPayment } from "@/lib/indexerClient";
 import { sdk } from "@/lib/sdk";
-import { RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
+import { INTRAZUITZ_URL, RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
 import { BikeAvatar } from "@/components/BikeAvatar";
 import { useAccount } from "wagmi";
 import { slots } from "@/lib/slots";
+import { IntrazuitzClient } from "@/lib/intrazuitzClient";
+import {
+  CheckCircledIcon,
+  Half2Icon,
+  Link2Icon,
+  LinkNone2Icon,
+} from "@radix-ui/react-icons";
 
 const todayStr = new Date().toISOString().split("T")[0];
+
+let intrazuitzClient: IntrazuitzClient | null = null;
+
+if (INTRAZUITZ_URL) {
+  intrazuitzClient = new IntrazuitzClient(INTRAZUITZ_URL);
+}
 
 // Generate dates from today until cutoff date (May 23, 2025)
 function generateDateRange(startDate: Date, endDate: Date): string[] {
@@ -81,6 +95,8 @@ export default function Home() {
     null,
   );
 
+  const [isIntraZuitz, setIntraZuitz] = useState<boolean | null>(null);
+
   const [paymentsHistory, setPaymentsHistory] = useState<PaymentSimple[]>([]);
   const [senderPaymentsHistory, setSenderPaymentsHistory] = useState<
     PaymentSimple[]
@@ -89,11 +105,19 @@ export default function Home() {
 
   const isEmbedded = isInIframe();
 
+  function applyIntraZuitzDiscount(amount: number) {
+    if (isIntraZuitz) {
+      return amount * 0.5;
+    } else {
+      return amount;
+    }
+  }
+
   const handleBuy = async (product: ProductDetails) => {
     try {
       const paymentRequest = {
         addressOrEns: process.env.NEXT_PUBLIC_ENS,
-        amount: product.amount,
+        amount: applyIntraZuitzDiscount(product.amount),
         currency: FiatCurrency.USD,
         memo: product.id, // Unique identifier for this order
         // redirectUrl only required when running standalone
@@ -195,6 +219,12 @@ export default function Home() {
   function slotBooked(slot: ProductDetails) {
     return paymentsHistory.some((p) => p.memo === slot.id);
   }
+
+  useEffect(() => {
+    if (intrazuitzClient) {
+      intrazuitzClient.isZuitzerland().then(setIntraZuitz);
+    }
+  }, []);
 
   const debugBox = (
     <DropdownMenu.Root>
@@ -401,11 +431,30 @@ export default function Home() {
       <SenderPaymentsHistory />
       <Box mt="6" width="100%">
         <Grid columns={{ initial: "1", sm: "1", md: "1" }} gap="4">
+          {isIntraZuitz && (
+            <Callout.Root color="green">
+              <Callout.Icon>
+                <Link2Icon />
+              </Callout.Icon>
+              <Callout.Text>IntraZuitz discount applied.</Callout.Text>
+            </Callout.Root>
+          )}
+
+          {!isIntraZuitz && (
+            <Callout.Root color="gray">
+              <Callout.Icon>
+                <LinkNone2Icon />
+              </Callout.Icon>
+              <Callout.Text>
+                Connect to tailscale for IntraZuitz discount.
+              </Callout.Text>
+            </Callout.Root>
+          )}
+
           <Flex justify="between" align="center">
             <Heading size="3" weight="medium">
               Booking
             </Heading>
-
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
                 <Button variant="soft">
@@ -461,7 +510,7 @@ export default function Home() {
                         justifyContent: "center",
                       }}
                     />
-                    Rent for ${slot.amount.toFixed(2)}
+                    Rent for ${applyIntraZuitzDiscount(slot.amount).toFixed(2)}
                   </Button>
                 </Tooltip>
               ))}
