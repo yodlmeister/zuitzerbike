@@ -33,12 +33,22 @@ import { useAccount } from "wagmi";
 import { slots } from "@/lib/slots";
 
 const todayStr = new Date().toISOString().split("T")[0];
-// const tmrwStr = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-const availableDates = [
-  todayStr,
-  // tmrwStr
-];
+// Generate dates from today until cutoff date (May 23, 2025)
+function generateDateRange(startDate: Date, endDate: Date): string[] {
+  const dates: string[] = [];
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    dates.push(currentDate.toISOString().split("T")[0]);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return dates;
+}
+
+const cutoffDate = new Date("2025-05-23");
+const availableDates = generateDateRange(new Date(), cutoffDate);
 
 const currentSlots: ProductDetails[] = [];
 
@@ -75,6 +85,7 @@ export default function Home() {
   const [senderPaymentsHistory, setSenderPaymentsHistory] = useState<
     PaymentSimple[]
   >([]);
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
   const isEmbedded = isInIframe();
 
@@ -374,62 +385,94 @@ export default function Home() {
     );
   }
 
+  // Format date for display (e.g., May 15, 2025)
+  const formatDateForDisplay = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short'
+    });
+  };
+
   return (
     <Grid columns="1" align="center">
       <SenderPaymentsHistory />
       <Box mt="6" width="100%">
-        {availableDates.map((date) => {
-          return (
-            <Grid
-              key={date}
-              columns={{ initial: "1", sm: "2", md: "3" }}
-              gap="4"
+        <Grid
+          columns={{ initial: "1", sm: "1", md: "1" }}
+          gap="4"
+        >
+          <Flex justify="between" align="center">
+            <Heading
+              size="3"
+              weight="medium"
             >
-              <Flex justify="between">
-                <Heading
-                  size="3"
-                  weight="medium"
-                  style={{ textAlign: "center" }}
-                >
-                  Booking
-                </Heading>
-                <Heading
-                  size="3"
-                  weight="medium"
-                  style={{ textAlign: "center" }}
-                >
-                  {date}
-                </Heading>
-              </Flex>
+              Booking
+            </Heading>
 
-              {currentSlots
-                .filter((slot) => slot.date === date)
-                .map((slot) => (
-                  <Tooltip key={slot.id} content={slot.id}>
-                    <Button
-                      key={slot.id}
-                      onClick={() => handleBuy(slot)}
-                      size="3"
-                      style={{ width: "100%" }}
-                      disabled={!!paymentRequest || slotBooked(slot)}
-                    >
-                      <Avatar
-                        size="2"
-                        radius="full"
-                        fallback={slot.emoji}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      />
-                      Rent for ${slot.amount.toFixed(2)}
-                    </Button>
-                  </Tooltip>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger>
+                <Button variant="soft">
+                  {formatDateForDisplay(selectedDate)}
+                  <DropdownMenu.TriggerIcon />
+                </Button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                {availableDates.slice(0, 30).map((date) => (
+                  <DropdownMenu.Item
+                    key={date}
+                    onSelect={() => setSelectedDate(date)}
+                  >
+                    {formatDateForDisplay(date)}
+                  </DropdownMenu.Item>
                 ))}
-            </Grid>
-          );
-        })}
+                {availableDates.length > 30 && (
+                  <DropdownMenu.Separator />
+                )}
+                {availableDates.length > 30 && (
+                  <DropdownMenu.Item
+                    onSelect={() => setSelectedDate(availableDates[availableDates.length - 1])}
+                  >
+                    Last day: {formatDateForDisplay(availableDates[availableDates.length - 1])}
+                  </DropdownMenu.Item>
+                )}
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+          </Flex>
+
+          <Grid
+            columns={{ initial: "1", sm: "2", md: "3" }}
+            gap="4"
+          >
+            {currentSlots
+              .filter((slot) => slot.date === selectedDate)
+              .map((slot) => (
+                <Tooltip key={slot.id} content={slot.id}>
+                  <Button
+                    key={slot.id}
+                    onClick={() => handleBuy(slot)}
+                    size="3"
+                    style={{ width: "100%" }}
+                    disabled={!!paymentRequest || slotBooked(slot)}
+                  >
+                    <Avatar
+                      size="2"
+                      radius="full"
+                      fallback={slot.emoji}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    />
+                    Rent for ${slot.amount.toFixed(2)}
+                  </Button>
+                </Tooltip>
+              ))}
+          </Grid>
+        </Grid>
       </Box>
       <Flex justify="between" mt="9" width="100%" align="center">
         {debugBox}
