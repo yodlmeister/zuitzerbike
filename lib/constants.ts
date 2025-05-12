@@ -12,4 +12,4 @@ export const DATABASE_URL = process.env.DATABASE_URL;
 
 export const YODL_SIGNING_ADDRESS = process.env.YODL_SIGNING_ADDRESS;
 
-export const INTRAZUITZ_URL = process.env.INTRAZUITZ_URL;
+export const INTRAZUITZ_URL = process.env.NEXT_PUBLIC_INTRAZUITZ_URL;

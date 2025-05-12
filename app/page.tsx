@@ -403,7 +403,7 @@ export default function Home() {
         ))}
         {upcoming.length === 0 && (
           <Text weight="light" color="gray">
-            No upcoming bookings
+            You have no upcoming bookings
           </Text>
         )}
       </Grid>
