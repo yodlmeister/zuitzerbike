@@ -72,6 +72,16 @@ availableDates.forEach((date) => {
   });
 });
 
+export function isValidPayment(payment: PaymentSimple) {
+  const memo = payment.memo;
+
+  if (payment.tokenOutSymbol == "USDC") {
+    return Number(payment.tokenOutAmountGross) >= 15;
+  } else {
+    return false;
+  }
+}
+
 export type ProductDetails = {
   id: string;
   amount: number;
@@ -188,11 +198,13 @@ export default function Home() {
   }
 
   useEffect(() => {
-    sdk.getPayments({ perPage: 100 }).then((resp) => {
-      if ("payments" in resp) {
-        setPaymentsHistory(resp.payments);
-      }
-    });
+    sdk
+      .getPayments({ receiver: RECIPIENT_ENS_OR_ADDRESS, perPage: 100 })
+      .then((resp) => {
+        if ("payments" in resp) {
+          setPaymentsHistory(resp.payments.filter(isValidPayment));
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -206,7 +218,7 @@ export default function Home() {
       })
       .then((resp) => {
         if ("payments" in resp) {
-          setSenderPaymentsHistory(resp.payments);
+          setSenderPaymentsHistory(resp.payments.filter(isValidPayment));
         }
       });
   }, [address, receiverEnsOrAddress]);

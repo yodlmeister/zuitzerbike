@@ -18,6 +18,7 @@ import { RECIPIENT_ENS_OR_ADDRESS } from "@/lib/constants";
 import Link from "next/link";
 import truncateEthAddress from "truncate-eth-address";
 import { slots } from "@/lib/slots";
+import { isValidPayment } from "../page";
 
 type TabType = "recent" | "upcoming" | "past" | "invalid";
 
@@ -70,16 +71,20 @@ export default function HistoryPage() {
     if (activeTab === "recent") {
       // Sort by blockTimestamp descending (most recent first)
       // Filter out invalid date payments
-      return [...payments].filter(hasValidDateFormat).sort((a, b) => {
-        return (
-          new Date(b.blockTimestamp).getTime() -
-          new Date(a.blockTimestamp).getTime()
-        );
-      });
+      return [...payments]
+        .filter(hasValidDateFormat)
+        .filter(isValidPayment)
+        .sort((a, b) => {
+          return (
+            new Date(b.blockTimestamp).getTime() -
+            new Date(a.blockTimestamp).getTime()
+          );
+        });
     } else if (activeTab === "upcoming") {
       // Filter for upcoming dates (today or later) and sort chronologically
       return [...payments]
         .filter(hasValidDateFormat)
+        .filter((payment) => isValidPayment(payment))
         .filter((payment) => {
           const date = payment.memo.split("_")[0];
           return date >= todayStr;
@@ -100,6 +105,7 @@ export default function HistoryPage() {
       // Past days: Filter for past dates and sort reverse chronologically
       return [...payments]
         .filter(hasValidDateFormat)
+        .filter((payment) => isValidPayment(payment))
         .filter((payment) => {
           const date = payment.memo.split("_")[0];
           return date < todayStr;
@@ -120,6 +126,7 @@ export default function HistoryPage() {
       // Invalid: payments with invalid date format
       return [...payments]
         .filter((payment) => !hasValidDateFormat(payment))
+        .filter((payment) => !isValidPayment(payment))
         .sort((a, b) => {
           return (
             new Date(b.blockTimestamp).getTime() -
