@@ -1,4 +1,4 @@
-import { Payment, PaymentSimple } from "@yodlpay/yapp-sdk";
+import { Payment } from "@yodlpay/yapp-sdk";
 
 export type PaymentResponse = {
   payment: YodlPayment;
