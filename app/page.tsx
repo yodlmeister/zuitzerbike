@@ -57,7 +57,7 @@ function generateDateRange(startDate: Date, endDate: Date): string[] {
   return dates;
 }
 
-const cutoffDate = new Date("2025-05-23");
+const cutoffDate = new Date("2025-05-26");
 const availableDates = generateDateRange(new Date(), cutoffDate);
 
 const currentSlots: ProductDetails[] = [];
